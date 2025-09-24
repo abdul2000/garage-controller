@@ -92,8 +92,21 @@ try:
     while True:
         current_state = get_door_state()
 
-        # Normal state change
-        if current_state in ("open", "closed"):
+        # Detect movement from physical remote control
+        if current_state == "moving" and last_state in ("open", "closed") and not target_state:
+            # Physical remote was used, infer direction from last stable state
+            if last_state == "closed":
+                target_state = "open"
+                publish_state("opening")
+                print("Physical remote detected: opening garage")
+            elif last_state == "open":
+                target_state = "closed"
+                publish_state("closing")
+                print("Physical remote detected: closing garage")
+            transition_start_time = time.time()
+
+        # Normal state change (door reached final position)
+        elif current_state in ("open", "closed"):
             publish_state(current_state)  # Only publishes if state changed
             client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
             if current_state == target_state:
