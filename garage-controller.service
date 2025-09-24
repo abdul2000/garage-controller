@@ -1,0 +1,21 @@
+[Unit]
+Description=Garage Door Controller
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/garage-controller
+ExecStart=/usr/bin/python3 /home/pi/garage-controller/garage_controller.py --config /home/pi/garage-controller/config.yaml
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Ensure GPIO access
+SupplementaryGroups=gpio
+
+[Install]
+WantedBy=multi-user.target

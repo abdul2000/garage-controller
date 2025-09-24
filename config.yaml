@@ -1,0 +1,23 @@
+# Garage Controller Configuration
+garage:
+  name: "Main Garage"
+  relay_pin: 18         # GPIO pin for relay control
+  door_sensor_pin: 24   # GPIO pin for door position sensor (closed)
+  activation_time: 0.5  # Time to activate relay (seconds)
+
+mqtt:
+  broker: "localhost"
+  port: 1883
+  username: ""          # Optional
+  password: ""          # Optional
+  topic_prefix: "homeassistant/cover/garage"
+  client_id: "garage_controller"
+  
+logging:
+  level: "INFO"         # DEBUG, INFO, WARNING, ERROR
+  file: "garage_controller.log"  # Will use /var/log/ if writable, otherwise current dir
+
+# GPIO Setup
+gpio:
+  mode: "BCM"           # BCM or BOARD
+  cleanup_on_exit: true

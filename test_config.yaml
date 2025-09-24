@@ -1,0 +1,22 @@
+# Test Configuration (no MQTT connection required)
+garage:
+  name: "Test Garage"
+  relay_pin: 18
+  door_sensor_pin: 24
+  activation_time: 0.5
+
+mqtt:
+  broker: "127.0.0.1"  # Use localhost for testing
+  port: 1883
+  username: ""
+  password: ""
+  topic_prefix: "homeassistant/cover/garage"
+  client_id: "garage_controller_test"
+  
+logging:
+  level: "DEBUG"
+  file: "test_garage_controller.log"
+
+gpio:
+  mode: "BCM"
+  cleanup_on_exit: true
