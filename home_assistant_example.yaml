@@ -1,0 +1,76 @@
+# Home Assistant Configuration Example
+# Add this to your configuration.yaml if auto-discovery doesn't work
+
+# MQTT Garage Door Cover (Manual Configuration)
+cover:
+  - platform: mqtt
+    name: "Main Garage Door"
+    unique_id: "garage_controller_main_garage"
+    command_topic: "homeassistant/cover/garage/set"
+    state_topic: "homeassistant/cover/garage/state"
+    availability_topic: "homeassistant/cover/garage/availability"
+    payload_open: "OPEN"
+    payload_close: "CLOSE"
+    payload_available: "online"
+    payload_not_available: "offline"
+    state_open: "open"
+    state_closed: "closed"
+    state_opening: "opening"
+    state_closing: "closing"
+    device_class: garage
+    retain: true
+
+# Optional: Binary sensor for door state
+binary_sensor:
+  - platform: mqtt
+    name: "Garage Door Status"
+    state_topic: "homeassistant/cover/garage/state"
+    payload_on: "open"
+    payload_off: "closed"
+    device_class: garage_door
+
+# Optional: Automation examples
+automation:
+  # Notify when garage door is left open
+  - alias: "Garage Door Left Open"
+    trigger:
+      - platform: state
+        entity_id: cover.main_garage_door
+        to: "open"
+        for:
+          minutes: 30
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "Garage Door Alert"
+          message: "Garage door has been open for 30 minutes"
+  
+  # Close garage door at night
+  - alias: "Close Garage at Night"
+    trigger:
+      - platform: time
+        at: "22:00:00"
+    condition:
+      - condition: state
+        entity_id: cover.main_garage_door
+        state: "open"
+    action:
+      - service: cover.close_cover
+        entity_id: cover.main_garage_door
+
+# Optional: Script for garage door control
+script:
+  toggle_garage:
+    alias: "Toggle Garage Door"
+    sequence:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: cover.main_garage_door
+                state: "closed"
+            sequence:
+              - service: cover.open_cover
+                entity_id: cover.main_garage_door
+        default:
+          - service: cover.close_cover
+            entity_id: cover.main_garage_door

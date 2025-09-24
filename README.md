@@ -109,6 +109,42 @@ sudo systemctl stop garage-controller
 sudo journalctl -u garage-controller -f
 ```
 
+## Files Overview
+
+- `garage_controller.py` - Main controller script
+- `config.yaml` - Configuration file
+- `requirements.txt` - Python dependencies
+- `install.sh` - Installation script
+- `garage-controller.service` - Systemd service file
+- `check_system.py` - System verification script
+- `test_controller.py` - Unit tests
+- `example_wiring.md` - Hardware wiring guide
+- `home_assistant_example.yaml` - HA configuration examples
+
+## Testing and Verification
+
+Before deploying to your Raspberry Pi, you can test the configuration:
+
+### System Check
+Run the system check script to verify your setup:
+```bash
+python3 check_system.py
+```
+
+This will check:
+- Python dependencies
+- Configuration file validity  
+- GPIO availability
+- User permissions
+- Systemd service status
+- MQTT connectivity
+
+### Unit Tests
+Run the included unit tests:
+```bash
+python3 test_controller.py
+```
+
 ## Troubleshooting
 
 ### Common Issues:
