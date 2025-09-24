@@ -22,9 +22,19 @@ target_state = None
 transition_start_time = None
 
 def get_door_state():
-    if GPIO.input(CLOSED_REED_PIN) == GPIO.LOW:
+    # Read pins multiple times to debounce
+    closed_readings = []
+    open_readings = []
+    
+    for _ in range(3):  # Take 3 readings
+        closed_readings.append(GPIO.input(CLOSED_REED_PIN))
+        open_readings.append(GPIO.input(OPEN_REED_PIN))
+        time.sleep(0.01)  # 10ms between readings
+    
+    # All readings must be consistent for a stable state
+    if all(reading == GPIO.LOW for reading in closed_readings):
         return "closed"
-    elif GPIO.input(OPEN_REED_PIN) == GPIO.LOW:
+    elif all(reading == GPIO.LOW for reading in open_readings):
         return "open"
     else:
         return "moving"
@@ -36,11 +46,11 @@ def toggle_relay():
     GPIO.output(RELAY_PIN, GPIO.LOW)
 
 def publish_state(state):
-#    global last_state
-#    if state != last_state:
-     print(f"Publishing state: {state}")
-     client.publish(MQTT_TOPIC_STATE, state, retain=True)
-#        last_state = state
+    global last_state
+    if state != last_state:
+        print(f"Publishing state: {state}")
+        client.publish(MQTT_TOPIC_STATE, state, retain=True)
+        last_state = state
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker")
@@ -84,7 +94,7 @@ try:
 
         # Normal state change
         if current_state in ("open", "closed"):
-            publish_state(current_state)
+            publish_state(current_state)  # Only publishes if state changed
             client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
             if current_state == target_state:
                 target_state = None
