@@ -105,8 +105,13 @@ try:
                 print("Physical remote detected: closing garage")
             transition_start_time = time.time()
 
+
         # Normal state change (door reached final position)
         elif current_state in ("open", "closed"):
+            # If previously obstructed, recover
+            if last_state == "stopped":
+                print(f"Recovered from stopped: Door is now {current_state}")
+                client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
             publish_state(current_state)  # Only publishes if state changed
             client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
             if current_state == target_state:
@@ -117,7 +122,8 @@ try:
         elif target_state and transition_start_time:
             elapsed = time.time() - transition_start_time
             print(f"Expecting target: {target_state}, current state: {current_state}")
-            if elapsed > 30:
+            # Only set stopped if still moving
+            if elapsed > 60 and current_state == "moving":
                 print("Detected obstruction — door did not reach target state.")
                 publish_state("stopped")
                 client.publish(MQTT_TOPIC_OBSTRUCTION, "true", retain=True)
