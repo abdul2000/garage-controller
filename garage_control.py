@@ -20,24 +20,40 @@ boot_time = time.time()
 last_state = None
 target_state = None
 transition_start_time = None
+last_moving_time = None
 
 def get_door_state():
     # Read pins multiple times to debounce
     closed_readings = []
     open_readings = []
     
-    for _ in range(3):  # Take 3 readings
+    for _ in range(5):  # Take 5 readings for better reliability
         closed_readings.append(GPIO.input(CLOSED_REED_PIN))
         open_readings.append(GPIO.input(OPEN_REED_PIN))
-        time.sleep(0.01)  # 10ms between readings
+        time.sleep(0.02)  # 20ms between readings
     
-    # All readings must be consistent for a stable state
-    if all(reading == GPIO.LOW for reading in closed_readings):
-        return "closed"
-    elif all(reading == GPIO.LOW for reading in open_readings):
-        return "open"
+    # Count how many readings are LOW (triggered)
+    closed_low_count = closed_readings.count(GPIO.LOW)
+    open_low_count = open_readings.count(GPIO.LOW)
+    
+    # Determine state
+    if closed_low_count >= 3:  # 3 out of 5 readings LOW = closed position
+        state = "closed"
+    elif open_low_count >= 3:  # 3 out of 5 readings LOW = open position
+        state = "open"
     else:
-        return "moving"
+        state = "moving"
+    
+    # Debug output (only when state changes or for diagnostics)
+    global last_debug_state
+    if not 'last_debug_state' in globals():
+        last_debug_state = None
+    
+    if state != last_debug_state:
+        print(f"Reed switches - Closed: {closed_readings} (LOW: {closed_low_count}), Open: {open_readings} (LOW: {open_low_count}) → State: {state}")
+        last_debug_state = state
+    
+    return state
 
 def toggle_relay():
     print("Toggling relay")
@@ -58,7 +74,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     print(f"Received MQTT: {msg.topic} → {msg.payload.decode()}")
-    global target_state, transition_start_time
+    global target_state, transition_start_time, last_moving_time
 
     toggle_command = msg.payload.decode()
     if toggle_command.startswith('TOGGLE'):
@@ -79,6 +95,7 @@ def on_message(client, userdata, msg):
             publish_state("moving")
         print(f"Toggling relay → current: {current}, setting target_state: {target_state}")
         transition_start_time = time.time()
+        last_moving_time = time.time()
 
 client = mqtt.Client(protocol=mqtt.MQTTv311)
 client.username_pw_set("admin", "admin")
@@ -104,6 +121,7 @@ try:
                 publish_state("closing")
                 print("Physical remote detected: closing garage")
             transition_start_time = time.time()
+            last_moving_time = time.time()
 
 
         # Normal state change (door reached final position)
@@ -118,17 +136,33 @@ try:
                 target_state = None
                 transition_start_time = None
 
-        # Obstruction check
+        # Handle "moving" state
+        elif current_state == "moving":
+            last_moving_time = time.time()
+            
+        # Obstruction and fallback logic
         elif target_state and transition_start_time:
             elapsed = time.time() - transition_start_time
-            print(f"Expecting target: {target_state}, current state: {current_state}")
-            # Only set stopped if still moving
-            if elapsed > 60 and current_state == "moving":
-                print("Detected obstruction — door did not reach target state.")
+            time_since_moving = time.time() - last_moving_time if last_moving_time else 0
+            
+            print(f"Expecting target: {target_state}, current state: {current_state}, elapsed: {elapsed}s, time since moving: {time_since_moving}s")
+            
+            # If door hasn't been moving for 10 seconds, assume it reached target
+            if time_since_moving > 10 and last_moving_time:
+                print(f"Door appears stationary for 10s, assuming reached {target_state}")
+                publish_state(target_state)
+                client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
+                target_state = None
+                transition_start_time = None
+                last_moving_time = None
+            # Obstruction timeout
+            elif elapsed > 60:
+                print("Detected obstruction — door did not reach target state within timeout.")
                 publish_state("stopped")
                 client.publish(MQTT_TOPIC_OBSTRUCTION, "true", retain=True)
                 target_state = None
                 transition_start_time = None
+                last_moving_time = None
 
         time.sleep(1)
 
