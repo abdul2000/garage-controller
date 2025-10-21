@@ -83,6 +83,9 @@ def on_message(client, userdata, msg):
             return
         current = get_door_state()
         print(f"current state: {current}, target state: {target_state}")
+        if toggle_command == 'TOGGLE_EMERGENCY':
+            publish_state("moving")
+            toggle_relay()
         if current == "closed" and toggle_command == 'TOGGLE_OPEN':
             target_state = "open"
             publish_state("opening")
@@ -136,33 +139,17 @@ try:
                 target_state = None
                 transition_start_time = None
 
-        # Handle "moving" state
-        elif current_state == "moving":
-            last_moving_time = time.time()
-            
-        # Obstruction and fallback logic
+        # Obstruction check
         elif target_state and transition_start_time:
             elapsed = time.time() - transition_start_time
-            time_since_moving = time.time() - last_moving_time if last_moving_time else 0
-            
-            print(f"Expecting target: {target_state}, current state: {current_state}, elapsed: {elapsed}s, time since moving: {time_since_moving}s")
-            
-            # If door hasn't been moving for 10 seconds, assume it reached target
-            if time_since_moving > 10 and last_moving_time:
-                print(f"Door appears stationary for 10s, assuming reached {target_state}")
-                publish_state(target_state)
-                client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
-                target_state = None
-                transition_start_time = None
-                last_moving_time = None
-            # Obstruction timeout
-            elif elapsed > 60:
-                print("Detected obstruction — door did not reach target state within timeout.")
+            print(f"Expecting target: {target_state}, current state: {current_state}")
+            # Only set stopped if still moving
+            if elapsed > 30 and current_state == "moving":
+                print("Detected obstruction — door did not reach target state.")
                 publish_state("stopped")
                 client.publish(MQTT_TOPIC_OBSTRUCTION, "true", retain=True)
                 target_state = None
                 transition_start_time = None
-                last_moving_time = None
 
         time.sleep(1)
 
