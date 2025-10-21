@@ -2,7 +2,7 @@ import time
 import RPi.GPIO as GPIO
 import paho.mqtt.client as mqtt
 
-MQTT_BROKER = '192.168.1.120'
+MQTT_BROKER = 'homeassistant.local'
 MQTT_TOPIC_COMMAND = 'garage/command'
 MQTT_TOPIC_STATE = 'garage/state'
 MQTT_TOPIC_OBSTRUCTION = 'garage/obstruction'
