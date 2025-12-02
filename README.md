@@ -35,10 +35,29 @@ A Python script for controlling garage doors via MQTT, designed for integration 
 1. Clone this repository to your Raspberry Pi
 2. Install required Python packages:
    ```bash
-   pip install paho-mqtt RPi.GPIO
+   sudo apt update
+   sudo apt install mosquitto mosquitto-clients python3-pip
+   pip3 install paho-mqtt RPi.GPIO
    ```
 3. Update the MQTT broker IP in `garage_control.py`
 4. Set up as a systemd service (see Service Management below)
+   ```bash
+   sudo nano /etc/systemd/system/garage_control.service
+   ```
+5. Add the following
+   ```bash
+   [Unit]
+   Description=Garage Door Controller
+   After=network.target
+   
+   [Service]
+   ExecStart=/usr/bin/python3 /home/pi/garage_control.py
+   Restart=always
+   User=pi
+   
+   [Install]
+   WantedBy=multi-user.target
+   ```
 
 ## Service Management
 
