@@ -58,7 +58,12 @@ A Python script for controlling garage doors via MQTT, designed for integration 
    [Install]
    WantedBy=multi-user.target
    ```
-
+6. Enable the service
+   ```bash
+   sudo systemctl daemon-reexec
+   sudo systemctl enable garage_control.service
+   sudo systemctl start garage_control.service
+   ```
 ## Service Management
 
 ### Start the service
@@ -85,7 +90,40 @@ sudo systemctl restart garage_control.service
 ```bash
 sudo systemctl enable garage_control.service
 ```
-
+## Configure MQTT in Home Assistant
+```yaml
+mqtt:
+  cover:
+    - name: "Garage Door"
+      command_topic: "garage/command"
+      state_topic: "garage/state"
+      payload_open: "TOGGLE_OPEN"
+      payload_close: "TOGGLE_CLOSE"
+      state_open: "open"
+      state_closed: "closed"
+      optimistic: false
+      retain: true
+      device_class: garage
+      qos: 1
+    - name: "Emergency Garage Door"
+      command_topic: "garage/command"
+      state_topic: "garage/state"
+      payload_open: "TOGGLE_EMERGENCY"
+      payload_close: "TOGGLE_EMERGENCY"
+      state_open: "open"
+      state_closed: "closed"
+      optimistic: false
+      retain: true
+      device_class: garage
+      qos: 1
+  binary_sensor:
+    - name: "Garage Obstruction"
+      state_topic: "garage/obstruction"
+      payload_on: "true"
+      payload_off: "false"
+      device_class: problem
+      qos: 0
+```
 ## Troubleshooting
 
 ### Monitor GPIO Pins
