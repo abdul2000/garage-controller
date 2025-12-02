@@ -91,6 +91,7 @@ sudo systemctl restart garage_control.service
 sudo systemctl enable garage_control.service
 ```
 ## Configure MQTT in Home Assistant
+1. Ensure MQTT is enabled and connected. In configuration.yaml (or via UI), add:
 ```yaml
 mqtt:
   cover:
@@ -124,6 +125,13 @@ mqtt:
       device_class: problem
       qos: 0
 ```
+2. Expose to HomeKit
+   ```yaml
+      homekit:
+        filter:
+          include_entities:
+            - cover.garage_door
+   ``` 
 ## Troubleshooting
 
 ### Monitor GPIO Pins
