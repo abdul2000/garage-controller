@@ -24,6 +24,10 @@ A Python script for controlling garage doors via MQTT, designed for integration 
 - **GPIO 23**: Closed position reed switch
 - **GPIO 24**: Open position reed switch
 
+## Wiring
+<img width="1750" height="1020" alt="image" src="https://github.com/user-attachments/assets/cccf86c5-3136-429d-af14-93a1974b19d9" />
+
+
 ## MQTT Topics
 
 - **Command**: `garage/command` - Send `TOGGLE_OPEN` or `TOGGLE_CLOSE`
