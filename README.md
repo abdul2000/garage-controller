@@ -110,7 +110,7 @@ mqtt:
       retain: true
       device_class: garage
       qos: 1
-    - name: "Emergency Garage Door"
+    - name: "Emergency Garage Door" #Optional. You should remove this. This is an example of a door that does not check the state. It will command the door to operate regardless.
       command_topic: "garage/command"
       state_topic: "garage/state"
       payload_open: "TOGGLE_EMERGENCY"
