@@ -129,13 +129,15 @@ mqtt:
       device_class: problem
       qos: 0
 ```
-2. Expose to HomeKit
+2. Show in **CarPlay** via **HomeKit**. NOTE: you need to add a HomeKit Bridge between your Home Assitant and your HomeKit so you can show the door on your CarPlay.
    ```yaml
       homekit:
         filter:
           include_entities:
             - cover.garage_door
-   ``` 
+   ```
+   <img width="331" height="147" alt="image" src="https://github.com/user-attachments/assets/afcd59ed-b027-41e6-9005-eac85a500758" />
+3. Show in **Android Auto** via **Google Cloud**. Just add the Google Cloud integration.
 ## Troubleshooting
 
 ### Monitor GPIO Pins
