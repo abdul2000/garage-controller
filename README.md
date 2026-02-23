@@ -129,7 +129,7 @@ mqtt:
       device_class: problem
       qos: 0
 ```
-2. Show in **CarPlay** via **HomeKit**. NOTE: you need to add a HomeKit Bridge between your Home Assitant and your HomeKit so you can show the door on your CarPlay.
+2. Show in **CarPlay** via **HomeKit**. NOTE: you need to add a HomeKit Bridge between your Home Assitant and your HomeKit so you can show the door on your CarPlay. For this bridge to work, you will need an Apple device (e.g. HomePod, Apple TV or an iPad) to be parmanently online at home. **I recommend a wired Apple TV**, if not a HomePod, if not an iPad - not very reliable.
    ```yaml
       homekit:
         filter:
