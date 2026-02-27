@@ -45,9 +45,11 @@ A Python script for controlling garage doors via MQTT, designed for integration 
 ## Installation
 
 1. Clone this repository to your Raspberry Pi
-2. Change the following lines to reflect your username and password for MQTT broker and the port number.
+2. Change the following lines to reflect your broker hostname (I am using Mosquitto broker in Home Assitant here), username and password for MQTT broker and the port number.
 ```python
 MQTT_BROKER = 'homeassistant.local'
+.
+.
 client.username_pw_set("admin", "admin")
 .
 .
