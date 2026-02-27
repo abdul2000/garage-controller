@@ -11,6 +11,14 @@ A Python script for controlling garage doors via MQTT, designed for integration 
 - **Obstruction Detection**: Monitors for door movement issues
 - **State Tracking**: Reports door states: `open`, `closed`, `opening`, `closing`, `moving`, `stopped`
 
+## Install MQTT if not already installed.
+- Go to HA Settings -> Apps -> Click Install App
+- Search for Mosquitto broker
+- Click Install
+- Go to configurations and set a username and password
+- Note the port numbers under network and insure your network allows them.
+- Restart Home Assistant
+  
 ## Hardware Requirements
 
 - Raspberry Pi (tested on Pi Zero)
