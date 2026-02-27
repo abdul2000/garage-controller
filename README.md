@@ -45,18 +45,26 @@ A Python script for controlling garage doors via MQTT, designed for integration 
 ## Installation
 
 1. Clone this repository to your Raspberry Pi
-2. Install required Python packages:
+2. Change the following lines to reflect your username and password for MQTT broker and the port number.
+```python
+MQTT_BROKER = 'homeassistant.local'
+client.username_pw_set("admin", "admin")
+.
+.
+client.connect(MQTT_BROKER, 1883, 60)
+```   
+4. Install required Python packages:
    ```bash
    sudo apt update
    sudo apt install mosquitto mosquitto-clients python3-pip
    pip3 install paho-mqtt RPi.GPIO
    ```
-3. Update the MQTT broker IP in `garage_control.py`
-4. Set up as a systemd service (see Service Management below)
+5. Update the MQTT broker IP in `garage_control.py`
+6. Set up as a systemd service (see Service Management below)
    ```bash
    sudo nano /etc/systemd/system/garage_control.service
    ```
-5. Add the following
+7. Add the following
    ```bash
    [Unit]
    Description=Garage Door Controller
@@ -70,7 +78,7 @@ A Python script for controlling garage doors via MQTT, designed for integration 
    [Install]
    WantedBy=multi-user.target
    ```
-6. Enable the service
+8. Enable the service
    ```bash
    sudo systemctl daemon-reexec
    sudo systemctl enable garage_control.service
@@ -154,7 +162,10 @@ Install WiringPi and check GPIO states:
 sudo apt install wiringpi
 gpio readall
 ```
-
+Point the Raspberry PI directly to IP address of HA. Change this line to IP address e.g. 192.x.x.x.
+```python
+MQTT_BROKER = 'homeassistant.local'
+```
 ### View Service Logs
 ```bash
 sudo journalctl -u garage_control.service -f
