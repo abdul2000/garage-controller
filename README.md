@@ -21,9 +21,9 @@ A Python script for controlling garage doors via MQTT, designed for integration 
   
 ## Hardware Requirements
 
-- Raspberry Pi (tested on Pi Zero)
-- 2x Reed switches (for open/closed position detection)
-- 1x Relay module (for garage door control)
+- Raspberry Pi (tested on Pi Zero WH) https://core-electronics.com.au/raspberry-pi-zero-wh.html?gad_source=1&gad_campaignid=17417005429&gbraid=0AAAAADlEpP5KfCRvScEkVTehsqbBwWEqw 
+- 2x Reed switches (for open/closed position detection) https://www.jaycar.com.au/security-alarm-reed-switch/p/LA5072
+- 1x Relay module (for garage door control) https://www.jaycar.com.au/arduino-compatible-5v-relay/p/XC4419
 - Appropriate GPIO connections
 
 ## GPIO Pin Configuration
