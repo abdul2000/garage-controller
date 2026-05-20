@@ -16,6 +16,7 @@ A Python script for controlling garage doors via MQTT, designed for integration 
 - Search for Mosquitto broker
 - Click Install
 - Go to configurations and set a username and password
+  <img width="299" height="270" alt="image" src="https://github.com/user-attachments/assets/a8589ad7-0dac-455f-8a95-a73fa04e17a6" />
 - Note the port numbers under network and insure your network allows them.
 - Restart Home Assistant
   
