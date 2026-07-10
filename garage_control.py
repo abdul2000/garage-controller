@@ -18,6 +18,7 @@ GPIO.setup(CLOSED_REED_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(OPEN_REED_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 boot_time = time.time()
+last_connect_time = None
 last_state = None
 target_state = None
 transition_start_time = None
@@ -74,22 +75,32 @@ def publish_state(state):
 
 def on_connect(client, userdata, flags, rc):
     log("Connected to MQTT broker")
+    global last_connect_time
+    last_connect_time = time.time()
     client.subscribe(MQTT_TOPIC_COMMAND)
 
 def on_message(client, userdata, msg):
-    log(f"Received MQTT: {msg.topic} → {msg.payload.decode()}")
+    log(f"Received MQTT: {msg.topic} → {msg.payload.decode()} (retain={msg.retain})")
     global target_state, transition_start_time, last_moving_time
+
+    # Never act on a retained payload: the broker replays the last retained
+    # message on this topic to us every time we (re)subscribe, e.g. after a
+    # network outage. Treating that replay as a live command is what causes
+    # the door to trigger on reconnect.
+    if msg.retain:
+        log("Ignoring retained message on command topic")
+        return
 
     toggle_command = msg.payload.decode()
     if toggle_command.startswith('TOGGLE'):
         if time.time() - boot_time < 5:
             log("Ignoring TOGGLE during boot protection window")
             return
+        if last_connect_time and time.time() - last_connect_time < 5:
+            log("Ignoring TOGGLE during post-reconnect protection window")
+            return
         current = get_door_state()
         log(f"current state: {current}, target state: {target_state}")
-        if toggle_command == 'TOGGLE_EMERGENCY':
-            publish_state("moving")
-            toggle_relay()
         if current == "closed" and toggle_command == 'TOGGLE_OPEN':
             target_state = "open"
             publish_state("opening")
