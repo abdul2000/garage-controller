@@ -23,6 +23,13 @@ last_state = None
 target_state = None
 transition_start_time = None
 last_moving_time = None
+last_obstruction = None
+start_position_since = None
+
+# While the door is travelling, the reed switch at the position it just left can
+# flicker. A reading of that starting position only counts once it has held this
+# long (e.g. the door was stopped or reversed straight away).
+START_POSITION_CONFIRM_SECONDS = 5
 
 def log(msg):
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {msg}", flush=True)
@@ -72,6 +79,13 @@ def publish_state(state):
         log(f"Publishing state: {state}")
         client.publish(MQTT_TOPIC_STATE, state, retain=True)
         last_state = state
+
+def publish_obstruction(obstructed):
+    # Only publish when the value changes, not on every loop
+    global last_obstruction
+    if obstructed != last_obstruction:
+        client.publish(MQTT_TOPIC_OBSTRUCTION, "true" if obstructed else "false", retain=True)
+        last_obstruction = obstructed
 
 def on_connect(client, userdata, flags, rc):
     log("Connected to MQTT broker")
@@ -142,27 +156,36 @@ try:
             last_moving_time = time.time()
 
 
-        # Normal state change (door reached final position)
+        # Door is at an end position
         elif current_state in ("open", "closed"):
+            # Mid-transition and reading the position we started from: likely the
+            # reed switch flickering as the door leaves. Wait until it holds.
+            if target_state and current_state != target_state:
+                if start_position_since is None:
+                    start_position_since = time.time()
+                if time.time() - start_position_since < START_POSITION_CONFIRM_SECONDS:
+                    time.sleep(1)
+                    continue
+                log(f"Door stayed {current_state}; abandoning transition to {target_state}")
+            start_position_since = None
             # If previously obstructed, recover
             if last_state == "stopped":
                 log(f"Recovered from stopped: Door is now {current_state}")
-                client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
             publish_state(current_state)  # Only publishes if state changed
-            client.publish(MQTT_TOPIC_OBSTRUCTION, "false", retain=True)
-            if current_state == target_state:
-                target_state = None
-                transition_start_time = None
+            publish_obstruction(False)
+            target_state = None
+            transition_start_time = None
 
         # Obstruction check
         elif target_state and transition_start_time:
+            start_position_since = None
             elapsed = time.time() - transition_start_time
             log(f"Expecting target: {target_state}, current state: {current_state}")
             # Only set stopped if still moving
             if elapsed > 30 and current_state == "moving":
                 log("Detected obstruction — door did not reach target state.")
                 publish_state("stopped")
-                client.publish(MQTT_TOPIC_OBSTRUCTION, "true", retain=True)
+                publish_obstruction(True)
                 target_state = None
                 transition_start_time = None
 
